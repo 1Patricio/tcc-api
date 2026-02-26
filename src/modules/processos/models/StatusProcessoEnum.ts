@@ -1,0 +1,7 @@
+export enum StatusProcessoEnum{
+  ANDAMENTO = "ANDAMENTO",
+  JULGAMENTO = "JULGAMENTO",
+  SENTENCA = "SENTENCA",
+  RECURSO = "RECURSO",
+  ARQUIVADO = "ARQUIVADO",
+}
