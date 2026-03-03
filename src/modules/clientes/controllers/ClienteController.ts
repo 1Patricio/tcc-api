@@ -21,7 +21,11 @@ export const ClienteController = {
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      res.status(201).json(await ClienteService.create(req.body));
+      const user = AuthService.userInfo(req.headers.authorization!.replace("Bearer ",""));
+      res.status(201).json(await ClienteService.create({
+        ...req.body,
+        createdByUser: (await user).id
+      }));
     } catch (err) { next(err); }
   },
 

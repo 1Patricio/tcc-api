@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import authRoutes from "./routes/AuthRoute";
 import clientesRoutes from "./routes/ClientesRouter";
+import processoRoutes from "./routes/ProcessoRouter";
 
 dotenv.config();
 
@@ -18,5 +19,6 @@ app.use(express.json());
 
 app.use(authRoutes);
 app.use(clientesRoutes);
+app.use(processoRoutes)
 
 export default app;

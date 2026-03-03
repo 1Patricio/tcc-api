@@ -1,0 +1,16 @@
+import { Router } from "express";
+import authenticate from "../core/middlewares/Auth";
+import { ProcessoController } from "../modules/processos/controllers/ProcessoController";
+
+const router = Router();
+const context = "/processos"
+
+router.use(authenticate);
+
+router.get(context + "/", authenticate, ProcessoController.get);
+router.get(context + "/:id", authenticate, ProcessoController.getById);
+router.post(context + "/", authenticate, ProcessoController.create);
+router.put(context + "/:id", authenticate, ProcessoController.update);
+router.delete(context + "/:id", authenticate, ProcessoController.delete);
+
+export default router;

@@ -5,6 +5,8 @@ import { ClienteController } from "../modules/clientes/controllers/ClienteContro
 const router = Router();
 const context = "/clientes"
 
+router.use(authenticate);
+
 router.get(context + "/", authenticate, ClienteController.get);
 router.get(context + "/:id", authenticate, ClienteController.getById);
 router.post(context + "/", authenticate, ClienteController.create);

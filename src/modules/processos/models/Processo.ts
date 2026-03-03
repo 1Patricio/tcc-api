@@ -15,6 +15,9 @@ export class Processo{
   @JoinColumn({ name: "clienteId" })
   cliente!: Cliente;
 
+  @Column({ type: 'uuid' })
+  clienteId?: string;
+
   @Column({ 
     type:"enum", 
     enum: TipoAcaoProcessoEnum,
@@ -35,16 +38,16 @@ export class Processo{
   @Column({type: "text"})
   comarca?: string
 
-  @CreateDateColumn()
+  @Column({ type: "date" })
   dataDistribuicao?: Date;
 
-  @Column({type: "money"})
+  @Column({ type: "numeric", precision: 15, scale: 2, nullable: true })
   valorCausa?: number
 
-  @Column({type: "text"})
-  descricao?: string
+  @Column({ type: "text", nullable: true })
+  descricao?: string;
 
-  @Column({type: "text"})
+  @Column({type: "text", nullable: true})
   observacoes?: string
 
   @Column({ type: "text", nullable: true })
