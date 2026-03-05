@@ -12,7 +12,7 @@ export const ClienteController = {
     }
   },
 
-    async getById(req: Request, res: Response, next: NextFunction) {
+  async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const id = String(req.params.id);
       res.json(await ClienteService.get(id));

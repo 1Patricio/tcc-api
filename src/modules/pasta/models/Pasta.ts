@@ -15,4 +15,7 @@ export class Pasta{
   @OneToMany(() => Arquivo, (arquivos) => arquivos.id)
   @JoinColumn({ name: "arquivoId" })
   arquivos?: Arquivo[]
+
+  @Column({ type:'boolean', default: true})
+  status?: boolean
 }
