@@ -7,7 +7,7 @@ export class Cliente{
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: "text", nullable: false})
+  @Column({ type: "text"})
   nome!: string;
 
   @Column({ type: "text"})

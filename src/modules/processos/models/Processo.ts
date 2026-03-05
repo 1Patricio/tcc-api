@@ -32,13 +32,13 @@ export class Processo{
   })
   status!: StatusProcessoEnum
 
-  @Column({type: "text"})
+  @Column({type: "text", nullable: true })
   vara?: string
 
-  @Column({type: "text"})
+  @Column({type: "text", nullable: true })
   comarca?: string
 
-  @Column({ type: "date" })
+  @Column({ type: "date", nullable: true })
   dataDistribuicao?: Date;
 
   @Column({ type: "numeric", precision: 15, scale: 2, nullable: true })
