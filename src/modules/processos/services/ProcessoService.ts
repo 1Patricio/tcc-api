@@ -25,7 +25,6 @@ export const ProcessoService = {
     if(!data) throw { status: 404, message: "Processo não informado" };
     if (!data.cliente) throw { status: 404, message: "Cliente não informado" };
     if (!data.numeroProcesso) throw { status: 404, message: "Número processo não informado" };
-    console.log('Cheguei aqui')
 
     data.id = uuidv4();
     const newProcesso = ProcessoRepository.create(data);

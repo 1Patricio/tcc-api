@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, JoinColumn, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { TipoAcaoProcessoEnum } from "./TipoAcaoProcessoEnum";
 import { StatusProcessoEnum } from "./StatusProcessoEnum";
 import { Cliente } from "../../clientes/models/Cliente";
+import { Jurisprudencia } from "../../jurisprudencias/models/Jurisprudencia";
 
 @Entity('processos')
 export class Processo{
@@ -50,9 +51,16 @@ export class Processo{
   @Column({type: "text", nullable: true})
   observacoes?: string
 
+  @Column({type: "text", nullable: true })
+  caso?: string
+
   @Column({ type: "text", nullable: true })
   createdByUser!: string;
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @OneToMany(() => Jurisprudencia, (Jurisprudencia) => Jurisprudencia.id)
+  @JoinColumn({ name: "JurisprudenciaId" })
+  jurisprudencias?: Jurisprudencia[]
 }

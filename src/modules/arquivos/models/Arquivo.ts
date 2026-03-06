@@ -9,6 +9,9 @@ export class Arquivo{
   @Column({ type: "text", nullable: false})
   nome!: string;
 
+  @Column({ type: "uuid", nullable: false })
+  pastaId!: string;
+
   @ManyToOne(() => Pasta, (pasta) => pasta.id)
   @JoinColumn({ name: "pastaId" })
   Pasta?: Pasta

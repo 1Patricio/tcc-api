@@ -5,6 +5,7 @@ import authRoutes from "./routes/AuthRoute";
 import clientesRoutes from "./routes/ClientesRouter";
 import processoRoutes from "./routes/ProcessosRouter";
 import pastaRoutes from "./routes/PastasRouter";
+import arquivosRoutes from "./routes/ArquivosRouter";
 
 dotenv.config();
 
@@ -22,5 +23,6 @@ app.use(authRoutes);
 app.use(clientesRoutes);
 app.use(processoRoutes)
 app.use(pastaRoutes)
+app.use(arquivosRoutes)
 
 export default app;
