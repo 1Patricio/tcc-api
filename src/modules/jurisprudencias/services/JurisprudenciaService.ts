@@ -38,19 +38,27 @@ export const JurisprudenciaService = {
     return jurisprudencia;
   },
 
-  async create(userId: string, processoId: string, data: Partial<Jurisprudencia>): Promise<Jurisprudencia> {
+  async create(userId: string, data: Partial<Jurisprudencia>): Promise<Jurisprudencia> {
     const authUser = await AuthRepository.findOneBy({ id: userId });
     if (!authUser) {
       throw { status: 404, message: "Usuário não encontrado" };
     }
 
-    const processo = await ProcessoRepository.findOneBy({ id: processoId });
+    if (!data.processoId) {
+      throw { status: 400, message: "Processo não informado" };
+    }
+
+    const processo = await ProcessoRepository.findOneBy({ id: data.processoId });
     if (!processo) {
       throw { status: 404, message: "Processo não encontrado" };
     }
 
+    const jurisprudenciaExistente = await JurisprudenciaRepository.findOneBy({ processo: data.processo! });
+    if (jurisprudenciaExistente) {
+      throw { status: 404, message: "Jurisprudência já existente" };
+    }
+
     data.id = uuidv4();
-    data.processoId = processoId;
 
     const newJurisprudencia = JurisprudenciaRepository.create(data);
     return JurisprudenciaRepository.save(newJurisprudencia);

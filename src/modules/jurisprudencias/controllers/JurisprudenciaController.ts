@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../../users/services/AuthService';
 import { JurisprudenciaService } from '../services/JurisprudenciaService';
+import axios from "axios";
 
 export const JurisprudenciaController = {
 
@@ -53,13 +54,13 @@ export const JurisprudenciaController = {
         return res.status(401).json({ message: "Token não fornecido" });
       }
 
-      const processoId = req.params.processoId as string;
+      const processoId = req.body.processoId as string;
       if (!processoId) {
-        return res.status(400).json({ message: "ID do Processo é obrigatório" });
+        return res.status(400).json({ message: "Processo não informado" });
       }
 
       const user = await AuthService.userInfo(token);
-      const newJurisprudencia = await JurisprudenciaService.create(user.id, processoId, req.body);
+      const newJurisprudencia = await JurisprudenciaService.create(user.id, req.body);
       res.status(201).json(newJurisprudencia);
     } catch (err) {
       next(err);
@@ -85,4 +86,49 @@ export const JurisprudenciaController = {
       next(err);
     }
   },
+
+async buscaRs(req: Request, res: Response, next: NextFunction) {
+  try {
+
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      return res.status(401).json({ message: "Token não fornecido" });
+    }
+
+    await AuthService.userInfo(token);
+
+    const { termo } = req.body;
+
+    if (!termo) {
+      return res.status(400).json({ message: "Termo de busca é obrigatório" });
+    }
+
+    const params = new URLSearchParams();
+
+    params.append("action", "consultas_solr_ajax");
+    params.append("metodo", "buscar_resultados");
+    params.append(
+      "parametros",
+      `aba=jurisprudencia&realizando_pesquisa=1&pagina_atual=1&q_palavra_chave=${encodeURIComponent(
+        termo
+      )}&conteudo_busca=ementa_completa&facet=on&wt=json&ordem=desc&start=0`
+    );
+
+    const response = await axios.post(
+      "https://www.tjrs.jus.br/buscas/jurisprudencia/ajax.php",
+      params,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      }
+    );
+
+    res.json(response.data);
+
+  } catch (err) {
+    next(err);
+  }
+}
 };

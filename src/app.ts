@@ -6,6 +6,8 @@ import clientesRoutes from "./routes/ClientesRouter";
 import processoRoutes from "./routes/ProcessosRouter";
 import pastaRoutes from "./routes/PastasRouter";
 import arquivosRoutes from "./routes/ArquivosRouter";
+import jurisprudenciasRoutes from "./routes/JurisprudenciaRoutes";
+import peticaoRoutes from "./routes/PeticaoRouter";
 
 dotenv.config();
 
@@ -24,5 +26,7 @@ app.use(clientesRoutes);
 app.use(processoRoutes)
 app.use(pastaRoutes)
 app.use(arquivosRoutes)
+app.use(jurisprudenciasRoutes)
+app.use(peticaoRoutes)
 
 export default app;

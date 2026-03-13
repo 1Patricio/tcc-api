@@ -7,6 +7,7 @@ import { Processo } from "./modules/processos/models/Processo";
 import { Pasta } from "./modules/pasta/models/Pasta";
 import { Arquivo } from "./modules/arquivos/models/Arquivo";
 import { Jurisprudencia } from "./modules/jurisprudencias/models/Jurisprudencia";
+import { Peticao } from "./modules/peticoes/models/Peticao";
 
 dotenv.config();
 
@@ -15,5 +16,5 @@ export const AppDataSource = new DataSource({
   url: process.env.DATABASE_URL!,
   synchronize: true, 
   logging: false,
-  entities: [Cliente, User, Processo, Pasta, Arquivo, Jurisprudencia],
+  entities: [Cliente, User, Processo, Pasta, Arquivo, Jurisprudencia, Peticao],
 });
