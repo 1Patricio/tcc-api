@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Empresa } from "../../empresas/models/Empresa";
 
 @Entity('users')
 export class User {
@@ -16,4 +17,8 @@ export class User {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @ManyToOne(() => Empresa, (empresa) => empresa.usuarios)
+  @JoinColumn({ name: "empresaId" })
+  empresa?: Empresa;
 }

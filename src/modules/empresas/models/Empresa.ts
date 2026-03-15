@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, JoinColumn } from "typeorm";
+import { User } from "../../users/models/User";
 
 @Entity('empresas')
-export class User {
+export class Empresa {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
@@ -16,4 +17,8 @@ export class User {
 
   @CreateDateColumn()
   createdAt!: Date;
+  
+  @OneToMany(() => User, (usuario) => usuario.empresa)
+  @JoinColumn({ name: "usuarioId" })
+  usuarios?: User[]
 }
