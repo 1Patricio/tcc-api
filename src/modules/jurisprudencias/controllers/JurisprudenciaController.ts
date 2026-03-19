@@ -19,7 +19,7 @@ export const JurisprudenciaController = {
       }
 
       const user = await AuthService.userInfo(token);
-      const jurisprudencias = await JurisprudenciaService.list(user.id, processoId);
+      const jurisprudencias = await JurisprudenciaService.list(user.id);
       res.json(jurisprudencias);
     } catch (err) {
       next(err);
@@ -97,11 +97,16 @@ async buscaRs(req: Request, res: Response, next: NextFunction) {
 
     await AuthService.userInfo(token);
 
-    const { termo } = req.body;
+    const { termo, conteudoBusca } = req.body;
 
     if (!termo) {
       return res.status(400).json({ message: "Termo de busca é obrigatório" });
     }
+
+    if (!conteudoBusca) {
+      return res.status(400).json({ message: "Conteudo de busca é obrigatório" });
+    }
+
 
     const params = new URLSearchParams();
 
@@ -111,7 +116,7 @@ async buscaRs(req: Request, res: Response, next: NextFunction) {
       "parametros",
       `aba=jurisprudencia&realizando_pesquisa=1&pagina_atual=1&q_palavra_chave=${encodeURIComponent(
         termo
-      )}&conteudo_busca=ementa_completa&facet=on&wt=json&ordem=desc&start=0`
+      )}&conteudo_busca=${conteudoBusca}&facet=on&wt=json&ordem=desc&start=0`
     );
 
     const response = await axios.post(

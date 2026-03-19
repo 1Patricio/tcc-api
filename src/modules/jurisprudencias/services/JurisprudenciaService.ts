@@ -6,7 +6,7 @@ import { ProcessoRepository } from '../../processos/repositories/ProcessoReposit
 
 export const JurisprudenciaService = {
   
-  async list(userId: string, processoId: string): Promise<Jurisprudencia[]> {
+  async listByProcesso(userId: string, processoId: string): Promise<Jurisprudencia[]> {
     const authUser = await AuthRepository.findOneBy({ id: userId });
     if (!authUser) {
       throw { status: 404, message: "Usuário não encontrado" };
@@ -18,6 +18,15 @@ export const JurisprudenciaService = {
     }
 
     return JurisprudenciaRepository.findBy({ processoId: processoId });
+  },
+
+  async list(userId: string): Promise<Jurisprudencia[]> {
+    const authUser = await AuthRepository.findOneBy({ id: userId });
+    if (!authUser) {
+      throw { status: 404, message: "Usuário não encontrado" };
+    }
+
+    return JurisprudenciaRepository.find();
   },
 
   async get(userId: string, jurisprudenciaId: string): Promise<Jurisprudencia> {
