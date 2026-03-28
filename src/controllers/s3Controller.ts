@@ -1,25 +1,22 @@
 import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import { s3Client } from "../config/awsConfig.js";
+import { s3Client } from '../config/awsConfig';
 
 type File = {
   fileName: string,
+  fileNameKey: string,
   fileType: string,
-  buffer: string
+  buffer: Buffer
 }
 
-// Upload de arquivo
-export const uploadFile = async ({ fileName, fileType, buffer } : File) => {
-
-  const filenamecrypt = Date.now() + fileName
-
+export const uploadFile = async ({ fileName, fileNameKey, fileType, buffer } : File) => {
   try {
     const upload = new Upload({
       client: s3Client,
       params: {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: filenamecrypt, // cuidado
-        Body: Buffer.from(buffer),
+        Key: fileNameKey, 
+        Body: buffer,
         ContentType: fileType,
       },
     });
@@ -31,8 +28,8 @@ export const uploadFile = async ({ fileName, fileType, buffer } : File) => {
       message: "Arquivo enviado com sucesso",
       data: {
         fileName: fileName,
-        fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
-        key: filenamecrypt, // cuidado - usa no buscar
+        fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileNameKey}`,
+        key: fileNameKey,
       },
     };
   } catch (error: any) {
@@ -44,7 +41,6 @@ export const uploadFile = async ({ fileName, fileType, buffer } : File) => {
   }
 };
 
-// Excluir arquivo
 export const deleteFile = async (fileName: string) => {
   try {
     const command = new DeleteObjectCommand({
@@ -70,7 +66,6 @@ export const deleteFile = async (fileName: string) => {
   }
 };
 
-// Buscar arquivo
 export const getFile = async (filename: string) => {
   try {
     const command = new GetObjectCommand({

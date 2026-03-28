@@ -3,6 +3,7 @@ import { AuthRepository } from '../../users/repositories/AuthRepository';
 import { PastaRepository } from '../../pasta/repositories/PastaRepository';
 import { Arquivo } from '../models/Arquivo';
 import { ArquivoRepository } from '../repositories/ArquivoRepository';
+import { uploadFile } from '../../../controllers/s3Controller';
 
 export const ArquivoService = {
 
@@ -38,25 +39,71 @@ export const ArquivoService = {
     return arquivo;
   },
 
-  async create(userId: string, pastaId: string, data: Partial<Arquivo>): Promise<Arquivo> {
+  async create(userId: string, pastaId: string, file?: Express.Multer.File): Promise<Arquivo> {
+    if (!file) throw { status: 400, message: "Nenhum arquivo enviado." };
+
     const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
+    if (!authUser) throw { status: 404, message: "Usuário não encontrado" };
 
     const pasta = await PastaRepository.findOneBy({ id: pastaId });
-    if (!pasta) {
-      throw { status: 404, message: "Pasta não encontrada" };
+    if (!pasta) throw { status: 404, message: "Pasta não encontrada" };
+
+    const allowedMimeTypes = [
+      'application/pdf', 'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg', 'image/png'
+    ];
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw { status: 400, message: 'Tipo de arquivo não permitido' };
     }
 
-    data.id = uuidv4();
-    data.pastaId = pastaId;
+    let buffer = file.buffer;
+    if (buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+      buffer = buffer.subarray(3);
+    }
 
-    const newArquivo = ArquivoRepository.create(data);
-    
-    await PastaRepository.update(pastaId, { 
-      dataUltimaModificacao: new Date() 
+    const header = buffer.toString('hex', 0, 4);
+    const isKnown = /^(25504446|89504e47|ffd8ff|504b0304|d0cf11e0)/.test(header);
+
+    if (!isKnown) {
+      console.error(`Assinatura inválida: ${header} para tipo ${file.mimetype}`);
+      throw { status: 400, message: 'Arquivo com formato interno inválido' };
+    }
+
+    const extensionMap: Record<string, string> = {
+      'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png',
+      'application/vnd.ms-excel': 'xls',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+      'application/msword': 'doc',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx'
+    };
+
+    const extension = extensionMap[file.mimetype] || 'bin';
+    const fileNameKey = `${uuidv4()}.${extension}`;
+    const fileName = file.filename
+
+    const uploadResult = await uploadFile({
+      fileName,
+      fileNameKey,
+      fileType: file.mimetype,
+      buffer: buffer,
     });
+
+    if (!uploadResult.success) {
+      throw { status: 500, message: "Erro no upload do arquivo" };
+    }
+
+    const newArquivo = ArquivoRepository.create({
+      id: uuidv4(),
+      pastaId,
+      nome: file.originalname, 
+      nomeFisico: fileNameKey,
+      url: uploadResult.data?.fileUrl!
+    });
+    
+    await PastaRepository.update(pastaId, { dataUltimaModificacao: new Date() });
 
     return ArquivoRepository.save(newArquivo);
   },

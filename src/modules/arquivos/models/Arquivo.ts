@@ -9,6 +9,12 @@ export class Arquivo{
   @Column({ type: "text", nullable: false})
   nome!: string;
 
+  @Column({ type: "text", nullable: false})
+  url!: string;
+
+  @Column({ type: "text", nullable: false})
+  nomeFisico!: string;
+
   @Column({ type: "uuid", nullable: false })
   pastaId!: string;
 

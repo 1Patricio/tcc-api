@@ -71,18 +71,18 @@ export const ArquivoController = {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ message: "Token não fornecido" });
-      }
+      if (!token) return res.status(401).json({ message: "Token não fornecido" });
 
-      const pastaId = req.params.pastaId as string;
-      if (!pastaId) {
-        return res.status(400).json({ message: "ID da pasta é obrigatório" });
-      }
+      const { pastaId } = req.body; 
+      if (!pastaId) return res.status(400).json({ message: "ID da pasta é obrigatório" });
+
+      if (!req.file) return res.status(400).json({ message: "Nenhum arquivo enviado" });
 
       const user = await AuthService.userInfo(token);
-      const novoArquivo = await ArquivoService.create(user.id, pastaId, req.body);
-      res.status(201).json(novoArquivo);
+      
+      const novoArquivo = await ArquivoService.create(user.id, pastaId, req.file);
+      
+      return res.status(201).json(novoArquivo);
     } catch (err) {
       next(err);
     }
