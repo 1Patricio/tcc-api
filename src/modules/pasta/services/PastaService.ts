@@ -24,7 +24,11 @@ export const PastaService = {
   async get(id: string): Promise<Pasta> {
     if(id == null) throw { status: 404, message: "Erro ao buscar pasta" };
 
-    const pasta = await ClienteRepository.findOneBy({ id });
+    const pasta = await PastaRepository.findOne({ 
+      where: { id },
+      relations: ['subpastas', 'arquivos']
+     });
+     
     if (!pasta) throw { status: 404, message: "Pasta não encontrado" };
 
     return pasta;

@@ -6,10 +6,14 @@ import { ArquivoController } from "../modules/arquivos/controllers/ArquivoContro
 const router = Router();
 const context = "/arquivos";
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 1024 * 1024 * 1024 },
+});
 
 router.use(authenticate);
 
+router.get(`${context}/:arquivoId/download`, ArquivoController.download);
 router.get(`${context}/:pastaId`, ArquivoController.list);
 router.get(`${context}/:id`, ArquivoController.getById);
 router.post(`${context}/`, upload.single("file"), ArquivoController.create);

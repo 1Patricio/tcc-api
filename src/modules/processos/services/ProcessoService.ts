@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AuthRepository } from '../../users/repositories/AuthRepository';
 import { Processo } from '../models/Processo';
 import { ProcessoRepository } from '../repositories/ProcessoRepository';
+import { PastaRepository } from '../../pasta/repositories/PastaRepository';
 
 export const ProcessoService = {
   async list(id: string): Promise<Processo[]> {
@@ -26,7 +27,18 @@ export const ProcessoService = {
     if (!data.cliente) throw { status: 404, message: "Cliente não informado" };
     if (!data.numeroProcesso) throw { status: 404, message: "Número processo não informado" };
 
-    data.id = uuidv4();
+    const processoId = uuidv4();
+    data.id = processoId
+
+    const novaSubpasta = PastaRepository.create({
+      id: processoId,
+      nome: `Processo: ${data.numeroProcesso}`,
+      parentId: data.cliente.id,
+      dataUltimaModificacao: new Date()
+    })
+
+    await PastaRepository.save(novaSubpasta);
+
     const newProcesso = ProcessoRepository.create(data);
     return ProcessoRepository.save(newProcesso);
   },
