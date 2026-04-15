@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { TipoAcaoProcessoEnum } from "./TipoAcaoProcessoEnum";
 import { StatusProcessoEnum } from "./StatusProcessoEnum";
+import { InstanciaProcessoEnum } from "./InstanciaProcessoEnum";
 import { Cliente } from "../../clientes/models/Cliente";
 import { Jurisprudencia } from "../../jurisprudencias/models/Jurisprudencia";
 
@@ -26,12 +27,22 @@ export class Processo{
   })
   tipoAcaoProcesso!: TipoAcaoProcessoEnum
 
-  @Column({ 
-    type:"enum", 
+  @Column({
+    type:"enum",
     enum: StatusProcessoEnum,
     default: StatusProcessoEnum.ANDAMENTO
   })
   status!: StatusProcessoEnum
+
+  @Column({
+    type: "enum",
+    enum: InstanciaProcessoEnum,
+    nullable: true
+  })
+  instancia?: InstanciaProcessoEnum
+
+  @Column({type: "text", nullable: true })
+  parteContraria?: string;
 
   @Column({type: "text", nullable: true })
   vara?: string
