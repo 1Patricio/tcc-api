@@ -49,10 +49,13 @@ export const ArquivoService = {
     if (!pasta) throw { status: 404, message: "Pasta não encontrada" };
 
     const allowedMimeTypes = [
-      'application/pdf', 'application/vnd.ms-excel',
+      'application/pdf',
+      'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'image/jpeg', 'image/png'
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'text/csv', 'text/plain',
     ];
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
@@ -64,20 +67,27 @@ export const ArquivoService = {
       buffer = buffer.subarray(3);
     }
 
-    const header = buffer.toString('hex', 0, 4);
-    const isKnown = /^(25504446|89504e47|ffd8ff|504b0304|d0cf11e0)/.test(header);
+    const textBased = ['text/csv', 'text/plain'].includes(file.mimetype);
 
-    if (!isKnown) {
-      console.error(`Assinatura inválida: ${header} para tipo ${file.mimetype}`);
-      throw { status: 400, message: 'Arquivo com formato interno inválido' };
+    if (!textBased) {
+      const header = buffer.toString('hex', 0, 4);
+      const isKnown = /^(25504446|89504e47|ffd8ff|47494638|52494646|504b0304|d0cf11e0)/.test(header);
+
+      if (!isKnown) {
+        console.error(`Assinatura inválida: ${header} para tipo ${file.mimetype}`);
+        throw { status: 400, message: 'Arquivo com formato interno inválido' };
+      }
     }
 
     const extensionMap: Record<string, string> = {
-      'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png',
+      'application/pdf': 'pdf',
+      'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp',
       'application/vnd.ms-excel': 'xls',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
       'application/msword': 'doc',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx'
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+      'text/csv': 'csv',
+      'text/plain': 'txt',
     };
 
     const extension = extensionMap[file.mimetype] || 'bin';
@@ -98,7 +108,7 @@ export const ArquivoService = {
     const newArquivo = ArquivoRepository.create({
       id: uuidv4(),
       pastaId,
-      nome: file.originalname, 
+      nome: Buffer.from(file.originalname, 'latin1').toString('utf8'),
       nomeFisico: fileNameKey,
       url: uploadResult.data?.fileUrl!
     });
