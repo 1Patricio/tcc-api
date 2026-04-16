@@ -5,13 +5,18 @@ import { ProcessoRepository } from '../repositories/ProcessoRepository';
 import { PastaRepository } from '../../pasta/repositories/PastaRepository';
 
 export const ProcessoService = {
-  async list(id: string): Promise<Processo[]> {
+  async list(id: string, page: number = 1, rpp: number = 20): Promise<{ list: Processo[], more: boolean, page: number, rpp: number }> {
     const authUser = await AuthRepository.findOneBy({ id });
-    if (!authUser) {
-      throw new Error("Usuário não encontrado");
-    }
+    if (!authUser) throw new Error("Usuário não encontrado");
 
-    return ProcessoRepository.findBy({ createdByUser: authUser.id });
+    const [list, total] = await ProcessoRepository.findAndCount({
+      where: { createdByUser: authUser.id },
+      skip: (page - 1) * rpp,
+      take: rpp,
+      order: { createdAt: 'DESC' },
+    });
+
+    return { list, more: page * rpp < total, page, rpp };
   },
 
   async get(id: string): Promise<Processo> {

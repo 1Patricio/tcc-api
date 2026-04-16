@@ -5,8 +5,10 @@ import { ProcessoService } from "../services/ProcessoService";
 export const ProcessoController = {
   async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = AuthService.userInfo(req.headers.authorization!.replace("Bearer ",""));
-      res.json(await ProcessoService.list((await user).id))  
+      const user = await AuthService.userInfo(req.headers.authorization!.replace("Bearer ", ""));
+      const page = parseInt(req.query.page as string) || 1;
+      const rpp = parseInt(req.query.rpp as string) || 10;
+      res.json(await ProcessoService.list(user.id, page, rpp));
     } catch (err) {
       next(err)
     }
