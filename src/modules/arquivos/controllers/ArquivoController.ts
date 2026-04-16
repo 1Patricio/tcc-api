@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Readable } from 'stream';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client } from '../../../config/awsConfig';
 import { ArquivoService } from '../services/ArquivoService';
 import { ArquivoRepository } from '../repositories/ArquivoRepository';
@@ -134,6 +135,30 @@ export const ArquivoController = {
       res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(arquivo.nome)}"`);
 
       (s3Response.Body as Readable).pipe(res);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async presignedUrl(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token) return res.status(401).json({ message: 'Token não fornecido' });
+
+      const arquivoId = req.params.arquivoId as string;
+      if (!arquivoId) return res.status(400).json({ message: 'ID do arquivo é obrigatório' });
+
+      const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId });
+      if (!arquivo) return res.status(404).json({ message: 'Arquivo não encontrado' });
+
+      const command = new GetObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: arquivo.nomeFisico,
+      });
+
+      const url = await getSignedUrl(s3Client, command, { expiresIn: 900 });
+
+      res.json({ url });
     } catch (err) {
       next(err);
     }

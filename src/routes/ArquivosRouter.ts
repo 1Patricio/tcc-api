@@ -14,6 +14,7 @@ const upload = multer({
 router.use(authenticate);
 
 router.get(`${context}/:arquivoId/download`, ArquivoController.download);
+router.get(`${context}/:arquivoId/presigned-url`, ArquivoController.presignedUrl);
 router.get(`${context}/:pastaId`, ArquivoController.list);
 router.get(`${context}/:id`, ArquivoController.getById);
 router.post(`${context}/`, upload.single("file"), ArquivoController.create);
