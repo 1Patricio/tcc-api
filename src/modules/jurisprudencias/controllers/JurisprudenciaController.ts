@@ -26,27 +26,6 @@ export const JurisprudenciaController = {
     }
   },
 
-  async get(req: Request, res: Response, next: NextFunction) {
-    try {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ message: "Token não fornecido" });
-      }
-
-      const jurisprudenciaId = req.params.arquivoId as string;
-      if (!jurisprudenciaId) {
-        return res.status(400).json({ message: "ID da Jurisprudência é obrigatória" });
-      }
-
-      const user = await AuthService.userInfo(token);
-      const jurisprudencia = await JurisprudenciaService.get(user.id, jurisprudenciaId);
-      res.json(jurisprudencia);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const token = req.headers.authorization?.replace("Bearer ", "");
