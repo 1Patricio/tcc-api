@@ -7,8 +7,13 @@ export const ProcessoController = {
     try {
       const user = await AuthService.userInfo(req.headers.authorization!.replace("Bearer ", ""));
       const page = parseInt(req.query.page as string) || 1;
-      const rpp = parseInt(req.query.rpp as string) || 10;
-      res.json(await ProcessoService.list(user.id, page, rpp));
+      const rpp = parseInt(req.query.rpp as string) || 20;
+      const filters = {
+        term: req.query.term as string | undefined,
+        status: req.query.status as string | undefined,
+        tipoAcaoProcesso: req.query.tipoAcaoProcesso as string | undefined,
+      };
+      res.json(await ProcessoService.list(user.id, page, rpp, filters));
     } catch (err) {
       next(err)
     }

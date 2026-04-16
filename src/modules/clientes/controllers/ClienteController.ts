@@ -5,8 +5,14 @@ import { ClienteService } from "../services/ClienteService";
 export const ClienteController = {
   async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = AuthService.userInfo(req.headers.authorization!.replace("Bearer ",""));
-      res.json(await ClienteService.list((await user).id))  
+      const user = await AuthService.userInfo(req.headers.authorization!.replace("Bearer ", ""));
+      const page = parseInt(req.query.page as string) || 1;
+      const rpp = parseInt(req.query.rpp as string) || 20;
+      const filters = {
+        term: req.query.term as string | undefined,
+        tipoCliente: req.query.tipoCliente as string | undefined,
+      };
+      res.json(await ClienteService.list(user.id, page, rpp, filters));
     } catch (err) {
       next(err)
     }

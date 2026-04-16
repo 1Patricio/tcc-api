@@ -1,16 +1,43 @@
 import { v4 as uuidv4 } from 'uuid';
+import { ILike } from 'typeorm';
 import { AuthRepository } from '../../users/repositories/AuthRepository';
 import { Processo } from '../models/Processo';
 import { ProcessoRepository } from '../repositories/ProcessoRepository';
 import { PastaRepository } from '../../pasta/repositories/PastaRepository';
 
+type ListFilters = {
+  term?: string;
+  status?: string;
+  tipoAcaoProcesso?: string;
+}
+
 export const ProcessoService = {
-  async list(id: string, page: number = 1, rpp: number = 20): Promise<{ list: Processo[], more: boolean, page: number, rpp: number }> {
+  async list(
+    id: string,
+    page: number = 1,
+    rpp: number = 20,
+    filters: ListFilters = {}
+  ): Promise<{ list: Processo[], more: boolean, page: number, rpp: number }> {
     const authUser = await AuthRepository.findOneBy({ id });
     if (!authUser) throw new Error("Usuário não encontrado");
 
+    const { term, status, tipoAcaoProcesso } = filters;
+
+    const baseWhere: any = {
+      createdByUser: authUser.id,
+      ...(status && { status }),
+      ...(tipoAcaoProcesso && { tipoAcaoProcesso }),
+    };
+
+    const where = term
+      ? [
+          { ...baseWhere, numeroProcesso: ILike(`%${term}%`) },
+          { ...baseWhere, parteContraria: ILike(`%${term}%`) },
+        ]
+      : [baseWhere];
+
     const [list, total] = await ProcessoRepository.findAndCount({
-      where: { createdByUser: authUser.id },
+      where,
       skip: (page - 1) * rpp,
       take: rpp,
       order: { createdAt: 'DESC' },
