@@ -100,7 +100,7 @@ export const ArquivoController = {
         return res.status(401).json({ message: "Token não fornecido" });
       }
 
-      const arquivoId = req.params.arquivoId as string;
+      const arquivoId = req.params.id as string;
       if (!arquivoId) {
         return res.status(400).json({ message: "ID do arquivo é obrigatório" });
       }
@@ -171,7 +171,7 @@ export const ArquivoController = {
         return res.status(401).json({ message: "Token não fornecido" });
       }
 
-      const arquivoId = req.params.arquivoId as string;
+      const arquivoId = req.params.id as string;
       if (!arquivoId) {
         return res.status(400).json({ message: "ID do arquivo é obrigatório" });
       }
