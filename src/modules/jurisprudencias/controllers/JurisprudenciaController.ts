@@ -66,53 +66,46 @@ export const JurisprudenciaController = {
     }
   },
 
-async buscaRs(req: Request, res: Response, next: NextFunction) {
-  try {
-
-    const token = req.headers.authorization?.replace("Bearer ", "");
-    if (!token) {
-      return res.status(401).json({ message: "Token não fornecido" });
-    }
-
-    await AuthService.userInfo(token);
-
-    const { termo, conteudoBusca } = req.body;
-
-    if (!termo) {
-      return res.status(400).json({ message: "Termo de busca é obrigatório" });
-    }
-
-    if (!conteudoBusca) {
-      return res.status(400).json({ message: "Conteudo de busca é obrigatório" });
-    }
-
-
-    const params = new URLSearchParams();
-
-    params.append("action", "consultas_solr_ajax");
-    params.append("metodo", "buscar_resultados");
-    params.append(
-      "parametros",
-      `aba=jurisprudencia&realizando_pesquisa=1&pagina_atual=1&q_palavra_chave=${encodeURIComponent(
-        termo
-      )}&conteudo_busca=${conteudoBusca}&facet=on&wt=json&ordem=desc&start=0`
-    );
-
-    const response = await axios.post(
-      "https://www.tjrs.jus.br/buscas/jurisprudencia/ajax.php",
-      params,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "X-Requested-With": "XMLHttpRequest"
-        }
+  async buscaRs(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.headers.authorization?.replace("Bearer ", "");
+      if (!token) {
+        return res.status(401).json({ message: "Token não fornecido" });
       }
-    );
 
-    res.json(response.data);
+      await AuthService.userInfo(token);
 
-  } catch (err) {
-    next(err);
+      const { termo, tipoConsulta = "Inteiro Teor", pagina = 1 } = req.body;
+
+      if (!termo) {
+        return res.status(400).json({ message: "Termo de busca é obrigatório" });
+      }
+
+      const response = await axios.get(
+        "https://www.tjrs.jus.br/novo/wp-admin/admin-ajax.php",
+        {
+          params: {
+            action: "busca_jurisprudencia",
+            palavra_chave: termo,
+            tipo_consulta: tipoConsulta,
+            num_page: pagina,
+          }
+        }
+      );
+
+      const data = response.data;
+      if (data?.data?.html) {
+        data.data.html = data.data.html
+          .replace(/www\.dev\.tjrs\.jus\.br/g, 'www.tjrs.jus.br')
+          .replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
+          .replace(/<p><span class="title-results">Inteiro teor:<\/span>.*?<\/p>/gs, '')
+          .replace(/<span id="span-ver-integra-[^"]*">.*?<\/span>/gs, '<span class="ver-integra-placeholder"></span>');
+      }
+
+      res.json(data);
+
+    } catch (err) {
+      next(err);
+    }
   }
-}
 };
