@@ -7,6 +7,7 @@ const context = "/processos"
 
 router.use(authenticate);
 
+router.get(context + "/dashboard", authenticate, ProcessoController.dashboard);
 router.get(context + "/", authenticate, ProcessoController.get);
 router.get(context + "/:id", authenticate, ProcessoController.getById);
 router.post(context + "/", authenticate, ProcessoController.create);

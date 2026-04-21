@@ -60,4 +60,11 @@ export const ProcessoController = {
       res.status(204).send();
     } catch (err) { next(err); }
   },
+
+  async dashboard(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await AuthService.userInfo(req.headers.authorization!.replace("Bearer ", ""));
+      res.json(await ProcessoService.dashboard(user.id));
+    } catch (err) { next(err); }
+  },
 }

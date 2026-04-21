@@ -89,4 +89,33 @@ export const ProcessoService = {
 
     await ProcessoRepository.remove(processo);
   },
+
+  async dashboard(userId: string): Promise<{
+    stats: { status: string; total: number }[];
+    proximosPrazos: Processo[];
+  }> {
+    const authUser = await AuthRepository.findOneBy({ id: userId });
+    if (!authUser) throw new Error("Usuário não encontrado");
+
+    const statuses = ['ANDAMENTO', 'JULGAMENTO', 'SENTENCA', 'RECURSO', 'ARQUIVADO'];
+
+    const stats = await Promise.all(
+      statuses.map(async (status) => {
+        const total = await ProcessoRepository.count({
+          where: { createdByUser: authUser.id, status: status as any },
+        });
+        return { status, total };
+      })
+    );
+
+    const proximosPrazos = await ProcessoRepository.createQueryBuilder('p')
+      .where('p.createdByUser = :userId', { userId: authUser.id })
+      .andWhere("p.status != 'ARQUIVADO'")
+      .andWhere('p.dataPrazo IS NOT NULL')
+      .orderBy('p.dataPrazo', 'ASC')
+      .take(10)
+      .getMany();
+
+    return { stats, proximosPrazos };
+  },
 };
