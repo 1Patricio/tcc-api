@@ -9,9 +9,9 @@ export const ProcessoController = {
       const page = parseInt(req.query.page as string) || 1;
       const rpp = parseInt(req.query.rpp as string) || 20;
       const filters = {
-        term: req.query.term as string | undefined,
-        status: req.query.status as string | undefined,
-        tipoAcaoProcesso: req.query.tipoAcaoProcesso as string | undefined,
+        ...(req.query.term !== undefined && { term: req.query.term as string }),
+        ...(req.query.status !== undefined && { status: req.query.status as string }),
+        ...(req.query.tipoAcaoProcesso !== undefined && { tipoAcaoProcesso: req.query.tipoAcaoProcesso as string }),
       };
       res.json(await ProcessoService.list(user.id, page, rpp, filters));
     } catch (err) {

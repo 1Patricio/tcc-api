@@ -8,6 +8,7 @@ import pastaRoutes from "./routes/PastasRouter";
 import arquivosRoutes from "./routes/ArquivosRouter";
 import jurisprudenciasRoutes from "./routes/JurisprudenciaRoutes";
 import peticaoRoutes from "./routes/PeticaoRouter";
+import timelineRoutes from "./routes/TimelineRouter";
 
 dotenv.config();
 
@@ -28,5 +29,6 @@ app.use(pastaRoutes)
 app.use(arquivosRoutes)
 app.use(jurisprudenciasRoutes)
 app.use(peticaoRoutes)
+app.use(timelineRoutes)
 
 export default app;

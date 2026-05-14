@@ -9,8 +9,8 @@ export const ClienteController = {
       const page = parseInt(req.query.page as string) || 1;
       const rpp = parseInt(req.query.rpp as string) || 20;
       const filters = {
-        term: req.query.term as string | undefined,
-        tipoCliente: req.query.tipoCliente as string | undefined,
+        ...(req.query.term !== undefined && { term: req.query.term as string }),
+        ...(req.query.tipoCliente !== undefined && { tipoCliente: req.query.tipoCliente as string }),
       };
       res.json(await ClienteService.list(user.id, page, rpp, filters));
     } catch (err) {
