@@ -70,7 +70,7 @@ export const getFile = async (filename: string) => {
   try {
     const command = new GetObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: filename, // que seria o crypt
+      Key: filename, // crypt
     });
 
     const response = await s3Client.send(command);

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn } from "typeorm";
 import { Pasta } from "../../pasta/models/Pasta";
 
 @Entity('arquivos')
@@ -17,6 +17,9 @@ export class Arquivo{
 
   @Column({ type: "uuid", nullable: false })
   pastaId!: string;
+
+  @CreateDateColumn()
+  createdAt!: Date;
 
   @ManyToOne(() => Pasta, (pasta) => pasta.id)
   @JoinColumn({ name: "pastaId" })
