@@ -1,18 +1,17 @@
 import { NextFunction, Request, Response } from "express";
-import { AuthService } from "../../users/services/AuthService";
 import { ClienteService } from "../services/ClienteService";
 
 export const ClienteController = {
   async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await AuthService.userInfo(req.headers.authorization!.replace("Bearer ", ""));
+      const userId = req.user!.id;
       const page = parseInt(req.query.page as string) || 1;
       const rpp = parseInt(req.query.rpp as string) || 20;
       const filters = {
         ...(req.query.term !== undefined && { term: req.query.term as string }),
         ...(req.query.tipoCliente !== undefined && { tipoCliente: req.query.tipoCliente as string }),
       };
-      res.json(await ClienteService.list(user.id, page, rpp, filters));
+      res.json(await ClienteService.list(userId, page, rpp, filters));
     } catch (err) {
       next(err)
     }
@@ -27,10 +26,9 @@ export const ClienteController = {
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = AuthService.userInfo(req.headers.authorization!.replace("Bearer ",""));
       res.status(201).json(await ClienteService.create({
         ...req.body,
-        createdByUser: (await user).id
+        createdByUser: req.user!.id
       }));
     } catch (err) { next(err); }
   },

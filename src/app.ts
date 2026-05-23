@@ -9,6 +9,7 @@ import arquivosRoutes from "./routes/ArquivosRouter";
 import jurisprudenciasRoutes from "./routes/JurisprudenciaRoutes";
 import peticaoRoutes from "./routes/PeticaoRouter";
 import timelineRoutes from "./routes/TimelineRouter";
+import { errorHandler } from "./core/middlewares/ErrorHandler";
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://cool-test-products.netlify.app"],
+    origin: ["http://localhost:5173"],
   })
 );
 
@@ -30,5 +31,7 @@ app.use(arquivosRoutes)
 app.use(jurisprudenciasRoutes)
 app.use(peticaoRoutes)
 app.use(timelineRoutes)
+
+app.use(errorHandler)
 
 export default app;

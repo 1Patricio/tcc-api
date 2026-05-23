@@ -4,6 +4,7 @@ import { Cliente } from '../models/Cliente';
 import { AuthRepository } from '../../users/repositories/AuthRepository';
 import { ClienteRepository } from '../repositories/ClienteRepository';
 import { PastaRepository } from '../../pasta/repositories/PastaRepository';
+import { NotFoundException } from '../../../core/exceptions/HttpException';
 
 type ListFilters = {
   term?: string;
@@ -18,7 +19,7 @@ export const ClienteService = {
     filters: ListFilters = {}
   ): Promise<{ list: Cliente[], more: boolean, page: number, rpp: number }> {
     const authUser = await AuthRepository.findOneBy({ id });
-    if (!authUser) throw new Error("Usuário não encontrado");
+    if (!authUser) throw new NotFoundException("Usuário não encontrado");
 
     const { term, tipoCliente } = filters;
 
@@ -45,10 +46,10 @@ export const ClienteService = {
   },
 
   async get(id: string): Promise<Cliente> {
-    if(id == null) throw { status: 404, message: "Erro ao buscar cliente" };
+    if (id == null) throw new NotFoundException("Erro ao buscar cliente");
 
     const cliente = await ClienteRepository.findOneBy({ id });
-    if (!cliente) throw { status: 404, message: "Cliente não encontrado" };
+    if (!cliente) throw new NotFoundException("Cliente não encontrado");
     return cliente;
   },
 
@@ -67,7 +68,7 @@ export const ClienteService = {
 
   async update(id: string, data: Partial<Cliente>): Promise<Cliente> {
     const cliente = await ClienteRepository.findOneBy({ id });
-    if (!cliente) throw { status: 404, message: "Cliente não encontrado" };
+    if (!cliente) throw new NotFoundException("Cliente não encontrado");
 
     ClienteRepository.merge(cliente, data);
     await PastaRepository.update(id, {dataUltimaModificacao: new Date(), nome: data.nome!})
@@ -77,7 +78,7 @@ export const ClienteService = {
 
   async remove(id: string): Promise<void> {
     const cliente = await ClienteRepository.findOneBy({ id });
-    if (!cliente) throw { status: 404, message: "Cliente não encontrado" };
+    if (!cliente) throw new NotFoundException("Cliente não encontrado");
 
     await ClienteRepository.remove(cliente);
   },
