@@ -75,34 +75,52 @@ export const JurisprudenciaController = {
 
       await AuthService.userInfo(token);
 
-      const { termo, tipoConsulta = "Inteiro Teor", pagina = 1 } = req.body;
+      const { termo, tipoConsulta = "ementa", pagina = 1 } = req.body;
 
       if (!termo) {
         return res.status(400).json({ message: "Termo de busca é obrigatório" });
       }
 
-      const response = await axios.get(
-        "https://www.tjrs.jus.br/novo/wp-admin/admin-ajax.php",
-        {
-          params: {
-            action: "busca_jurisprudencia",
-            palavra_chave: termo,
-            tipo_consulta: tipoConsulta,
-            num_page: pagina,
-          }
-        }
+      const conteudoBusca = tipoConsulta === "Inteiro Teor" ? "documento_text" : "ementa_completa";
+      const start = (Number(pagina) - 1) * 10;
+
+      const parametros = new URLSearchParams({
+        aba: "jurisprudencia",
+        realizando_pesquisa: "1",
+        pagina_atual: String(pagina),
+        q_palavra_chave: termo,
+        conteudo_busca: conteudoBusca,
+        wt: "json",
+        ordem: "desc",
+        start: String(start),
+      }).toString();
+
+      const body = new URLSearchParams({
+        action: "consultas_solr_ajax",
+        metodo: "buscar_resultados",
+        parametros,
+      }).toString();
+
+      const response = await axios.post(
+        "https://tjrs-proxy.andersongpatricio.workers.dev",
+        body,
+        { headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" } }
       );
 
-      const data = response.data;
-      if (data?.data?.html) {
-        data.data.html = data.data.html
-          .replace(/www\.dev\.tjrs\.jus\.br/g, 'www.tjrs.jus.br')
-          .replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-          .replace(/<p><span class="title-results">Inteiro teor:<\/span>.*?<\/p>/gs, '')
-          .replace(/<span id="span-ver-integra-[^"]*">.*?<\/span>/gs, '<span class="ver-integra-placeholder"></span>');
-      }
+      const solr = response.data;
+      const docs = solr.response?.docs ?? [];
 
-      res.json(data);
+      const resultados = docs.map((doc: any) => ({
+        codEmenta: doc.cod_ementa,
+        numeroProcesso: doc.numero_processo,
+        tipoProcesso: doc.tipo_processo || doc.nome_classe_cnj,
+        ementa: (Array.isArray(doc.ementa_completa) ? doc.ementa_completa[0] : doc.ementa_completa)?.trim(),
+        relator: Array.isArray(doc.relator_redator) ? doc.relator_redator[0] : doc.nome_relator,
+        orgaoJulgador: doc.orgao_julgador,
+        dataJulgamento: doc.data_julgamento ? doc.data_julgamento.split('T')[0] : null,
+      }));
+
+      res.json({ total: solr.response?.numFound ?? 0, resultados });
 
     } catch (err) {
       next(err);
