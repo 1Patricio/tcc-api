@@ -1,4 +1,5 @@
 import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Upload } from "@aws-sdk/lib-storage";
 import { s3Client } from '../config/awsConfig';
 
@@ -64,6 +65,14 @@ export const deleteFile = async (fileName: string) => {
       error: error.message,
     };
   }
+};
+
+export const getPresignedUrl = async (key: string, expiresIn = 86400) => {
+  const command = new GetObjectCommand({
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: key,
+  });
+  return await getSignedUrl(s3Client, command, { expiresIn });
 };
 
 export const getFile = async (filename: string) => {

@@ -14,7 +14,7 @@ export const AuthService = {
     const existingUser =  await AuthRepository.findOneBy({ email });
     if (existingUser) {
       throw new Error("Usuário já existente");
-    } 
+    }
 
     const hashed = await bcrypt.hash(password, 10);
     const diaAtual = new Date();
@@ -44,6 +44,28 @@ export const AuthService = {
     return { token, user: { id: user.id, nome: user.nome, email: user.email } };
   },
 
+  async updatePerfil(userId: string, nome: string, email: string, novaSenha?: string, fotoUrl?: string) {
+    if (!nome) throw new Error("Nome não informado");
+    if (!email) throw new Error("E-mail não informado");
+    if (novaSenha !== undefined && novaSenha.length < 6) throw new Error("A nova senha deve ter no mínimo 6 caracteres");
+
+    const user = await AuthRepository.findOne({ where: { id: userId } });
+    if (!user) throw new Error("Usuário não encontrado");
+
+    if (email !== user.email) {
+      const existing = await AuthRepository.findOneBy({ email });
+      if (existing) throw new Error("E-mail já está em uso");
+    }
+
+    user.nome = nome;
+    user.email = email;
+    if (novaSenha) user.password = await bcrypt.hash(novaSenha, 10);
+    if (fotoUrl) user.fotoPerfil = fotoUrl;
+
+    await AuthRepository.save(user);
+    return { id: user.id, nome: user.nome, email: user.email, fotoPerfil: user.fotoPerfil };
+  },
+
   async userInfo(token: string) {
     try {
       if(!token) throw new Error("Token inválido ou expirado");
@@ -52,7 +74,7 @@ export const AuthService = {
 
       const user = await AuthRepository.findOne({
         where: { id: payload.id },
-        select: ["id", "nome", "email"]
+        select: ["id", "nome", "email", "fotoPerfil"]
       });
 
       if (!user) throw new Error("Usuário não encontrado");

@@ -15,6 +15,12 @@ export class User {
   @Column({ type: "text", nullable: false })
   password!: string;
 
+  @Column({ type: "boolean", default: false })
+  super!: boolean;
+
+  @Column({ type: "text", nullable: true })
+  fotoPerfil?: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 
