@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import authRoutes from "./routes/AuthRoute";
+import backofficeRoutes from "./routes/BackofficeRoute";
 import clientesRoutes from "./routes/ClientesRouter";
 import processoRoutes from "./routes/ProcessosRouter";
 import pastaRoutes from "./routes/PastasRouter";
@@ -15,15 +16,25 @@ dotenv.config();
 
 const app = express();
 
+const corsOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: corsOrigins,
   })
 );
 
 app.use(express.json());
 
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.use(authRoutes);
+app.use(backofficeRoutes);
 app.use(clientesRoutes);
 app.use(processoRoutes)
 app.use(pastaRoutes)
