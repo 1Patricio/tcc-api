@@ -25,4 +25,14 @@ export const BackofficeUsersController = {
       return res.status(500).json({ message: err?.message ?? "Erro ao atualizar usuário" });
     }
   },
+
+  async resetSenha(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await BackofficeUsersService.resetSenha(id);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ message: err?.message ?? "Erro ao resetar senha" });
+    }
+  },
 };

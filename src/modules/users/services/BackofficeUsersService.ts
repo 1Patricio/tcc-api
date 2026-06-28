@@ -1,5 +1,11 @@
+import bcrypt from "bcryptjs";
 import { ILike } from "typeorm";
 import { AuthRepository } from "../repositories/AuthRepository";
+
+function gerarSenha(tamanho = 10): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$";
+  return Array.from({ length: tamanho }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
 
 export const BackofficeUsersService = {
   async list(page: number, rpp: number, term?: string, empresaId?: string) {
@@ -40,5 +46,12 @@ export const BackofficeUsersService = {
       email: updated.email,
       super: updated.super,
     };
+  },
+
+  async resetSenha(id: string) {
+    const novaSenha = gerarSenha();
+    const hash = await bcrypt.hash(novaSenha, 10);
+    await AuthRepository.update(id, { password: hash });
+    return { novaSenha };
   },
 };
