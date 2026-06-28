@@ -27,7 +27,7 @@ export const BackofficeAuthService = {
 
     return {
       token,
-      user: { id: user.id, nome: user.nome, email: user.email, super: true },
+      usuario: { id: user.id, nome: user.nome, email: user.email, super: true },
     };
   },
 };
