@@ -46,11 +46,6 @@ export const PeticaoService = {
       throw { status: 400, message: "Petição não informada" };
     }
 
-    const peticaoExistente = await PeticaoRepository.findOneBy({ id: data.id! });
-    if (peticaoExistente) {
-      throw { status: 404, message: "Petição já existente" };
-    }
-
     data.id = uuidv4();
     data.createdByUser = authUser.id;
 
