@@ -15,6 +15,9 @@ export class Empresa {
   @Column({ type: "text", unique: true })
   cnpj!: string;
 
+  @Column({ type: "text", nullable: true })
+  logo?: string | null;
+
   @CreateDateColumn()
   createdAt!: Date;
   
