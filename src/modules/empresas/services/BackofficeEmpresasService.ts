@@ -12,7 +12,7 @@ export const BackofficeEmpresasService = {
   async list(page: number, rpp: number, term?: string) {
     const where = term
       ? [{ fantasia: ILike(`%${term}%`) }, { cnpj: ILike(`%${term}%`) }]
-      : undefined;
+      : {};
 
     const [list, total] = await EmpresasRepository.findAndCount({
       where,

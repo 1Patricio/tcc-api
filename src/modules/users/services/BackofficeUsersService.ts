@@ -16,7 +16,7 @@ export const BackofficeUsersService = {
           { ...baseWhere, nome: ILike(`%${term}%`) },
           { ...baseWhere, email: ILike(`%${term}%`) },
         ]
-      : Object.keys(baseWhere).length ? [baseWhere] : undefined;
+      : baseWhere;
 
     const [list, total] = await AuthRepository.findAndCount({
       where,

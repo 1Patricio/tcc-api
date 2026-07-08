@@ -17,7 +17,7 @@ export const BackofficeUsersController = {
 
   async update(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { nome, email, super: isSuper } = req.body;
       const result = await BackofficeUsersService.update(id, { nome, email, super: isSuper });
       return res.json(result);
@@ -28,7 +28,7 @@ export const BackofficeUsersController = {
 
   async resetSenha(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const result = await BackofficeUsersService.resetSenha(id);
       return res.json(result);
     } catch (err: any) {

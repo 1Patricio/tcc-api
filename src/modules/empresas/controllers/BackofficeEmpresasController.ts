@@ -42,7 +42,7 @@ export const BackofficeEmpresasController = {
 
   async update(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { fantasia, razaoSocial, cnpj } = req.body;
       const empresa = await BackofficeEmpresasService.update(id, { fantasia, razaoSocial, cnpj });
       return res.json(await resolveLogoUrl(empresa));
@@ -53,7 +53,7 @@ export const BackofficeEmpresasController = {
 
   async updateLogo(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       if (!req.file) return res.status(400).json({ message: "Arquivo não enviado" });
 
       const ext = req.file.mimetype.split("/")[1] || req.file.originalname.split(".").pop() || "png";
@@ -75,7 +75,7 @@ export const BackofficeEmpresasController = {
 
   async removeLogo(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const empresa = await BackofficeEmpresasService.updateLogo(id, null);
       return res.json(empresa);
     } catch (err: any) {
