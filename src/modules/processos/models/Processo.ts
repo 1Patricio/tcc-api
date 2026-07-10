@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, JoinColumn, M
 import { TipoAcaoProcessoEnum } from "./TipoAcaoProcessoEnum";
 import { StatusProcessoEnum } from "./StatusProcessoEnum";
 import { InstanciaProcessoEnum } from "./InstanciaProcessoEnum";
+import { EsferaProcessoEnum } from "./EsferaProcessoEnum";
 import { Cliente } from "../../clientes/models/Cliente";
 import { Jurisprudencia } from "../../jurisprudencias/models/Jurisprudencia";
 
@@ -77,4 +78,11 @@ export class Processo{
   @OneToMany(() => Jurisprudencia, (Jurisprudencia) => Jurisprudencia.id)
   @JoinColumn({ name: "JurisprudenciaId" })
   jurisprudencias?: Jurisprudencia[]
+
+  @Column({
+    type: "enum",
+    enum: EsferaProcessoEnum,
+    default: EsferaProcessoEnum.JUDICIAL
+  })
+  esferaProcesso?: EsferaProcessoEnum
 }
