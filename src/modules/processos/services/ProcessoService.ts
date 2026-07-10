@@ -79,6 +79,15 @@ export const ProcessoService = {
     const processo = await ProcessoRepository.findOneBy({ id });
     if (!processo) throw { status: 404, message: "Proceso não encontrado" };
 
+    if (data.numeroProcesso && data.numeroProcesso !== processo.numeroProcesso) {
+      const pasta = await PastaRepository.findOneBy({ id });
+      if (pasta) {
+        pasta.nome = `Processo: ${data.numeroProcesso}`;
+        pasta.dataUltimaModificacao = new Date();
+        await PastaRepository.save(pasta);
+      }
+    }
+
     ProcessoRepository.merge(processo, data);
     return ProcessoRepository.save(processo);
   },
