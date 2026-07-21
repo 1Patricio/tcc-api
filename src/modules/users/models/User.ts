@@ -18,6 +18,9 @@ export class User {
   @Column({ type: "boolean", default: false })
   super!: boolean;
 
+  @Column({ type: "boolean", default: true })
+  ativo!: boolean;
+
   @Column({ type: "text", nullable: true })
   fotoPerfil?: string;
 
@@ -25,6 +28,6 @@ export class User {
   createdAt!: Date;
 
   @ManyToOne(() => Empresa, (empresa) => empresa.usuarios)
-  @JoinColumn({ name: "empresaId" })
+  @JoinColumn({ name: "tenantId" })
   empresa?: Empresa;
 }

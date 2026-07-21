@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
+import { Empresa } from "../../empresas/models/Empresa";
 
 @Entity('peticoes')
 export class Peticao{
@@ -7,7 +8,7 @@ export class Peticao{
 
   @Column({ type: "text" })
   nome!: string;
-  
+
   @Column({ type: "text", nullable: true })
   tipo?: string;
 
@@ -16,4 +17,11 @@ export class Peticao{
 
   @Column({ type: "text", nullable: true })
   conteudo?: string;
+
+  @Column({ type: "uuid", nullable: true })
+  tenantId?: string;
+
+  @ManyToOne(() => Empresa)
+  @JoinColumn({ name: "tenantId" })
+  empresa?: Empresa;
 }

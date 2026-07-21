@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { AuthService } from "../../users/services/AuthService";
 import { ProcessoService } from "../services/ProcessoService";
 
 export const ProcessoController = {
   async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await AuthService.userInfo(req.headers.authorization!.replace("Bearer ", ""));
+      const tenantId = req.user!.tenantId!;
       const page = parseInt(req.query.page as string) || 1;
       const rpp = parseInt(req.query.rpp as string) || 20;
       const filters = {
@@ -13,7 +12,7 @@ export const ProcessoController = {
         ...(req.query.status !== undefined && { status: req.query.status as string }),
         ...(req.query.tipoAcaoProcesso !== undefined && { tipoAcaoProcesso: req.query.tipoAcaoProcesso as string }),
       };
-      res.json(await ProcessoService.list(user.id, page, rpp, filters));
+      res.json(await ProcessoService.list(tenantId, page, rpp, filters));
     } catch (err) {
       next(err)
     }
@@ -22,21 +21,18 @@ export const ProcessoController = {
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const id = String(req.params.id);
-      res.json(await ProcessoService.get(id));
+      res.json(await ProcessoService.get(id, req.user!.tenantId!));
     } catch (err) { next(err); }
   },
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await AuthService.userInfo(
-        req.headers.authorization!.replace("Bearer ","")
-      );
-
       const { clienteId, ...rest } = req.body;
 
       const processo = await ProcessoService.create({
         ...rest,
-        createdByUser: user.id,
+        createdByUser: req.user!.id,
+        tenantId: req.user!.tenantId,
         cliente: { id: clienteId }
       });
 
@@ -49,22 +45,21 @@ export const ProcessoController = {
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const id = String(req.params.id);
-      res.json(await ProcessoService.update(id, req.body));
+      res.json(await ProcessoService.update(id, req.user!.tenantId!, req.body));
     } catch (err) { next(err); }
   },
 
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const id = String(req.params.id);
-      await ProcessoService.remove(id);
+      await ProcessoService.remove(id, req.user!.tenantId!);
       res.status(204).send();
     } catch (err) { next(err); }
   },
 
   async dashboard(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await AuthService.userInfo(req.headers.authorization!.replace("Bearer ", ""));
-      res.json(await ProcessoService.dashboard(user.id));
+      res.json(await ProcessoService.dashboard(req.user!.tenantId!));
     } catch (err) { next(err); }
   },
 }

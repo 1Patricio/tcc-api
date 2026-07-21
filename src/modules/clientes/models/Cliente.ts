@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from "typeorm";
 import { TipoClienteEnum } from "./TipoClienteEnum";
 import { Processo } from "../../processos/models/Processo";
+import { Empresa } from "../../empresas/models/Empresa";
 
 @Entity('clientes')
 export class Cliente{
@@ -34,6 +35,13 @@ export class Cliente{
 
   @Column({ type: "text", nullable: true })
   createdByUser!: string;
+
+  @Column({ type: "uuid", nullable: true })
+  tenantId?: string;
+
+  @ManyToOne(() => Empresa)
+  @JoinColumn({ name: "tenantId" })
+  empresa?: Empresa;
 
   @OneToMany(() => Processo, (processo) => processo.cliente)
   @JoinColumn({ name: "processoId" })

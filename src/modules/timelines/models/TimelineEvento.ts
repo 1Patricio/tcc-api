@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
 import { Processo } from "../../processos/models/Processo";
 import { TipoEventoEnum } from "./TipoEventoEnum";
+import { Empresa } from "../../empresas/models/Empresa";
 
 @Entity('timeline_eventos')
 export class TimelineEvento {
@@ -29,6 +30,13 @@ export class TimelineEvento {
 
   @Column({ type: "date" })
   data!: Date;
+
+  @Column({ type: "uuid", nullable: true })
+  tenantId?: string;
+
+  @ManyToOne(() => Empresa)
+  @JoinColumn({ name: "tenantId" })
+  empresa?: Empresa;
 
   @CreateDateColumn()
   createdAt!: Date;

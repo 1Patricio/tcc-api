@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from "typeorm";
 import { Arquivo } from "../../arquivos/models/Arquivo";
+import { Empresa } from "../../empresas/models/Empresa";
 
 @Entity('pastas')
 export class Pasta {
@@ -17,6 +18,13 @@ export class Pasta {
 
   @Column({ type: "uuid", nullable: true })
   parentId?: string | null;
+
+  @Column({ type: "uuid", nullable: true })
+  tenantId?: string;
+
+  @ManyToOne(() => Empresa)
+  @JoinColumn({ name: "tenantId" })
+  empresa?: Empresa;
 
   @ManyToOne(() => Pasta, (pasta) => pasta.subpastas, { onDelete: 'CASCADE' })
   @JoinColumn({ name: "parentId" })

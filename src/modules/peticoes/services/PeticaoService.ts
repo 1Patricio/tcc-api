@@ -1,34 +1,19 @@
 import { v4 as uuidv4 } from 'uuid';
-import { AuthRepository } from '../../users/repositories/AuthRepository';
 import { Peticao } from '../models/Peticao';
 import { PeticaoRepository } from '../repositories/PeticaoRepository';
 
 export const PeticaoService = {
-  
-  async list(userId: string): Promise<Peticao[]> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
 
-    return PeticaoRepository.findBy({ createdByUser: userId });
+  async list(tenantId: string): Promise<Peticao[]> {
+    return PeticaoRepository.findBy({ tenantId });
   },
 
-  async get(userId: string, peticaoId: string): Promise<Peticao> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
-
-    if (userId == null) {
-      throw { status: 400, message: "Usuário não informado" };
-    }
-
+  async get(tenantId: string, peticaoId: string): Promise<Peticao> {
     if(peticaoId == null) {
       throw { status: 400, message: "Petição não informada" };
     }
 
-    const peticao = await PeticaoRepository.findOneBy({ createdByUser: userId, id: peticaoId });
+    const peticao = await PeticaoRepository.findOneBy({ tenantId, id: peticaoId });
     if (!peticao) {
       throw { status: 404, message: "Petição não encontrada" };
     }
@@ -36,48 +21,34 @@ export const PeticaoService = {
     return peticao;
   },
 
-  async create(userId: string, data: Partial<Peticao>): Promise<Peticao> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
-
+  async create(userId: string, tenantId: string, data: Partial<Peticao>): Promise<Peticao> {
     if (!data) {
       throw { status: 400, message: "Petição não informada" };
     }
 
     data.id = uuidv4();
-    data.createdByUser = authUser.id;
+    data.createdByUser = userId;
+    data.tenantId = tenantId;
 
     const newJurisprudencia = PeticaoRepository.create(data);
     return PeticaoRepository.save(newJurisprudencia);
   },
 
-  async remove(userId: string, peticaoId: string): Promise<void> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
-
-    const peticao = await PeticaoRepository.findOneBy({ id: peticaoId, createdByUser: userId });
+  async remove(tenantId: string, peticaoId: string): Promise<void> {
+    const peticao = await PeticaoRepository.findOneBy({ id: peticaoId, tenantId });
     if (!peticao) {
       throw { status: 404, message: "Petição não encontrada" };
     }
-  
+
     await PeticaoRepository.remove(peticao);
   },
 
-  async update(userId: string, peticaoId: string, data: Partial<Peticao>): Promise<Peticao> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
-
-    const peticao = await PeticaoRepository.findOneBy({ id: peticaoId, createdByUser: userId });
+  async update(tenantId: string, peticaoId: string, data: Partial<Peticao>): Promise<Peticao> {
+    const peticao = await PeticaoRepository.findOneBy({ id: peticaoId, tenantId });
     if (!peticao) {
       throw { status: 404, message: "Petição não encontrada" };
     }
-  
+
     PeticaoRepository.merge(peticao, data);
     return PeticaoRepository.save(peticao);
   },

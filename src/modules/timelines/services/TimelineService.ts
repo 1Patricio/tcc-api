@@ -1,15 +1,11 @@
-import { AuthRepository } from "../../users/repositories/AuthRepository";
 import { ProcessoRepository } from "../../processos/repositories/ProcessoRepository";
 import { TimelineEventoRepository } from "../repositories/TimelineEventoRepository";
 import { TimelineEvento } from "../models/TimelineEvento";
 
 export const TimelineService = {
-  async resumo(userId: string): Promise<object[]> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) throw { status: 401, message: "Usuário não encontrado" };
-
+  async resumo(tenantId: string): Promise<object[]> {
     const processos = await ProcessoRepository.find({
-      where: { createdByUser: authUser.id },
+      where: { tenantId },
       order: { createdAt: "DESC" },
     });
 
@@ -35,34 +31,35 @@ export const TimelineService = {
     );
   },
 
-  async listByProcesso(processoId: string): Promise<TimelineEvento[]> {
+  async listByProcesso(processoId: string, tenantId: string): Promise<TimelineEvento[]> {
     return TimelineEventoRepository.find({
-      where: { processoId },
+      where: { processoId, tenantId },
       order: { data: "DESC", createdAt: "DESC" },
     });
   },
 
-  async create(processoId: string, data: Partial<TimelineEvento>): Promise<TimelineEvento> {
-    const processo = await ProcessoRepository.findOneBy({ id: processoId });
+  async create(processoId: string, tenantId: string, data: Partial<TimelineEvento>): Promise<TimelineEvento> {
+    const processo = await ProcessoRepository.findOneBy({ id: processoId, tenantId });
     if (!processo) throw { status: 404, message: "Processo não encontrado" };
 
     const evento = TimelineEventoRepository.create({
       ...data,
       processoId,
+      tenantId,
     });
     return TimelineEventoRepository.save(evento);
   },
 
-  async update(id: string, data: Partial<TimelineEvento>): Promise<TimelineEvento> {
-    const evento = await TimelineEventoRepository.findOneBy({ id });
+  async update(id: string, tenantId: string, data: Partial<TimelineEvento>): Promise<TimelineEvento> {
+    const evento = await TimelineEventoRepository.findOneBy({ id, tenantId });
     if (!evento) throw { status: 404, message: "Evento não encontrado" };
 
     TimelineEventoRepository.merge(evento, data);
     return TimelineEventoRepository.save(evento);
   },
 
-  async remove(id: string): Promise<void> {
-    const evento = await TimelineEventoRepository.findOneBy({ id });
+  async remove(id: string, tenantId: string): Promise<void> {
+    const evento = await TimelineEventoRepository.findOneBy({ id, tenantId });
     if (!evento) throw { status: 404, message: "Evento não encontrado" };
 
     await TimelineEventoRepository.remove(evento);

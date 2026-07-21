@@ -8,16 +8,6 @@ function toS3Key(value: string): string {
 }
 
 export const AuthController = {
-  async register(req: Request, res: Response) {
-    try {
-      const { nome, email, password } = req.body;
-      const user = await AuthService.register(nome, email, password);
-      return res.status(201).json(user);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
-    }
-  },
-
   async login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;

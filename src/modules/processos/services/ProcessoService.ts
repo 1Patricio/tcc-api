@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ILike } from 'typeorm';
-import { AuthRepository } from '../../users/repositories/AuthRepository';
 import { Processo } from '../models/Processo';
 import { ProcessoRepository } from '../repositories/ProcessoRepository';
 import { PastaRepository } from '../../pasta/repositories/PastaRepository';
@@ -13,18 +12,15 @@ type ListFilters = {
 
 export const ProcessoService = {
   async list(
-    id: string,
+    tenantId: string,
     page: number = 1,
     rpp: number = 20,
     filters: ListFilters = {}
   ): Promise<{ list: Processo[], more: boolean, page: number, rpp: number }> {
-    const authUser = await AuthRepository.findOneBy({ id });
-    if (!authUser) throw new Error("Usuário não encontrado");
-
     const { term, status, tipoAcaoProcesso } = filters;
 
     const baseWhere: any = {
-      createdByUser: authUser.id,
+      tenantId,
       ...(status && { status }),
       ...(tipoAcaoProcesso && { tipoAcaoProcesso }),
     };
@@ -46,10 +42,10 @@ export const ProcessoService = {
     return { list, more: page * rpp < total, page, rpp };
   },
 
-  async get(id: string): Promise<Processo> {
+  async get(id: string, tenantId: string): Promise<Processo> {
     if(id == null) throw { status: 404, message: "Erro ao buscar proceso" };
 
-    const processo = await ProcessoRepository.findOneBy({ id });
+    const processo = await ProcessoRepository.findOneBy({ id, tenantId });
     if (!processo) throw { status: 404, message: "Proceso não encontrado" };
     return processo;
   },
@@ -66,6 +62,7 @@ export const ProcessoService = {
       id: processoId,
       nome: `Processo: ${data.numeroProcesso}`,
       parentId: data.cliente.id,
+      ...(data.tenantId ? { tenantId: data.tenantId } : {}),
       dataUltimaModificacao: new Date()
     })
 
@@ -75,8 +72,8 @@ export const ProcessoService = {
     return ProcessoRepository.save(newProcesso);
   },
 
-  async update(id: string, data: Partial<Processo>): Promise<Processo> {
-    const processo = await ProcessoRepository.findOneBy({ id });
+  async update(id: string, tenantId: string, data: Partial<Processo>): Promise<Processo> {
+    const processo = await ProcessoRepository.findOneBy({ id, tenantId });
     if (!processo) throw { status: 404, message: "Proceso não encontrado" };
 
     if (data.numeroProcesso && data.numeroProcesso !== processo.numeroProcesso) {
@@ -92,33 +89,30 @@ export const ProcessoService = {
     return ProcessoRepository.save(processo);
   },
 
-  async remove(id: string): Promise<void> {
-    const processo = await ProcessoRepository.findOneBy({ id });
+  async remove(id: string, tenantId: string): Promise<void> {
+    const processo = await ProcessoRepository.findOneBy({ id, tenantId });
     if (!processo) throw { status: 404, message: "Proceso não encontrado" };
 
     await ProcessoRepository.remove(processo);
   },
 
-  async dashboard(userId: string): Promise<{
+  async dashboard(tenantId: string): Promise<{
     stats: { status: string; total: number }[];
     proximosPrazos: Processo[];
   }> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) throw new Error("Usuário não encontrado");
-
     const statuses = ['ANDAMENTO', 'JULGAMENTO', 'SENTENCA', 'RECURSO', 'ARQUIVADO'];
 
     const stats = await Promise.all(
       statuses.map(async (status) => {
         const total = await ProcessoRepository.count({
-          where: { createdByUser: authUser.id, status: status as any },
+          where: { tenantId, status: status as any },
         });
         return { status, total };
       })
     );
 
     const proximosPrazos = await ProcessoRepository.createQueryBuilder('p')
-      .where('p.createdByUser = :userId', { userId: authUser.id })
+      .where('p.tenantId = :tenantId', { tenantId })
       .andWhere("p.status != 'ARQUIVADO'")
       .andWhere('p.dataPrazo IS NOT NULL')
       .orderBy('p.dataPrazo', 'ASC')

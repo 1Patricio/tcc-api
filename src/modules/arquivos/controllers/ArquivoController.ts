@@ -5,25 +5,18 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client } from '../../../config/awsConfig';
 import { ArquivoService } from '../services/ArquivoService';
 import { ArquivoRepository } from '../repositories/ArquivoRepository';
-import { AuthService } from '../../users/services/AuthService';
 
 export const ArquivoController = {
 
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ message: "Token não fornecido" });
-      }
-
       const pastaId = req.params.pastaId as string;
-      
+
       if (!pastaId) {
         return res.status(400).json({ message: "ID da pasta é obrigatório" });
       }
 
-      const user = await AuthService.userInfo(token);
-      const arquivos = await ArquivoService.list(user.id, pastaId);
+      const arquivos = await ArquivoService.list(req.user!.tenantId!, pastaId);
       res.json(arquivos);
     } catch (err) {
       next(err);
@@ -32,18 +25,12 @@ export const ArquivoController = {
 
   async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ message: "Token não fornecido" });
-      }
-
       const arquivoId = req.params.arquivoId as string;
       if (!arquivoId) {
         return res.status(400).json({ message: "ID do arquivo é obrigatório" });
       }
 
-      const user = await AuthService.userInfo(token);
-      const arquivo = await ArquivoService.get(user.id, arquivoId);
+      const arquivo = await ArquivoService.get(req.user!.tenantId!, arquivoId);
       res.json(arquivo);
     } catch (err) {
       next(err);
@@ -53,40 +40,29 @@ export const ArquivoController = {
 
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ message: "Token não fornecido" });
-      }
-
       const arquivoId = String(req.params.arquivoId);
       if (!arquivoId) {
         return res.status(400).json({ message: "ID do arquivo é obrigatório" });
       }
 
-      const user = await AuthService.userInfo(token);
-      const arquivo = await ArquivoService.get(user.id, arquivoId);
-      
+      const arquivo = await ArquivoService.get(req.user!.tenantId!, arquivoId);
+
       res.json(arquivo);
-    } catch (err) { 
-      next(err); 
+    } catch (err) {
+      next(err);
     }
   },
-  
+
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) return res.status(401).json({ message: "Token não fornecido" });
-
-      const { pastaId } = req.body; 
+      const { pastaId } = req.body;
       if (!pastaId) return res.status(400).json({ message: "ID da pasta é obrigatório" });
 
       if (!req.file) return res.status(400).json({ message: "Nenhum arquivo enviado" });
 
-      const user = await AuthService.userInfo(token);
-      
-      const novoArquivo = await ArquivoService.create(user.id, pastaId, req.file);
-      
+      const novoArquivo = await ArquivoService.create(req.user!.tenantId!, pastaId, req.file);
+
       return res.status(201).json(novoArquivo);
     } catch (err) {
       next(err);
@@ -95,18 +71,12 @@ export const ArquivoController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ message: "Token não fornecido" });
-      }
-
       const arquivoId = req.params.id as string;
       if (!arquivoId) {
         return res.status(400).json({ message: "ID do arquivo é obrigatório" });
       }
 
-      const user = await AuthService.userInfo(token);
-      const arquivoAtualizado = await ArquivoService.update(user.id, arquivoId, req.body);
+      const arquivoAtualizado = await ArquivoService.update(req.user!.tenantId!, arquivoId, req.body);
       res.json(arquivoAtualizado);
     } catch (err) {
       next(err);
@@ -115,13 +85,10 @@ export const ArquivoController = {
 
   async download(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.replace('Bearer ', '');
-      if (!token) return res.status(401).json({ message: 'Token não fornecido' });
-
       const arquivoId = req.params.arquivoId as string;
       if (!arquivoId) return res.status(400).json({ message: 'ID do arquivo é obrigatório' });
 
-      const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId });
+      const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId, tenantId: req.user!.tenantId! });
       if (!arquivo) return res.status(404).json({ message: 'Arquivo não encontrado' });
 
       const command = new GetObjectCommand({
@@ -142,13 +109,10 @@ export const ArquivoController = {
 
   async presignedUrl(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.replace('Bearer ', '');
-      if (!token) return res.status(401).json({ message: 'Token não fornecido' });
-
       const arquivoId = req.params.arquivoId as string;
       if (!arquivoId) return res.status(400).json({ message: 'ID do arquivo é obrigatório' });
 
-      const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId });
+      const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId, tenantId: req.user!.tenantId! });
       if (!arquivo) return res.status(404).json({ message: 'Arquivo não encontrado' });
 
       const command = new GetObjectCommand({
@@ -166,18 +130,12 @@ export const ArquivoController = {
 
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ message: "Token não fornecido" });
-      }
-
       const arquivoId = req.params.id as string;
       if (!arquivoId) {
         return res.status(400).json({ message: "ID do arquivo é obrigatório" });
       }
 
-      const user = await AuthService.userInfo(token);
-      await ArquivoService.remove(user.id, arquivoId);
+      await ArquivoService.remove(req.user!.tenantId!, arquivoId);
       res.status(204).send();
     } catch (err) {
       next(err);

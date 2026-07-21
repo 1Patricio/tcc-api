@@ -11,7 +11,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-router.post(context + "/register", AuthController.register);
 router.post(context + "/login", AuthController.login);
 router.get(context + "/me", AuthController.me);
 router.put(context + "/perfil", authenticate, upload.single("foto"), AuthController.updatePerfil);

@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ILike } from 'typeorm';
 import { Cliente } from '../models/Cliente';
-import { AuthRepository } from '../../users/repositories/AuthRepository';
 import { ClienteRepository } from '../repositories/ClienteRepository';
 import { PastaRepository } from '../../pasta/repositories/PastaRepository';
 import { NotFoundException } from '../../../core/exceptions/HttpException';
@@ -13,18 +12,15 @@ type ListFilters = {
 
 export const ClienteService = {
   async list(
-    id: string,
+    tenantId: string,
     page: number = 1,
     rpp: number = 20,
     filters: ListFilters = {}
   ): Promise<{ list: Cliente[], more: boolean, page: number, rpp: number }> {
-    const authUser = await AuthRepository.findOneBy({ id });
-    if (!authUser) throw new NotFoundException("Usuário não encontrado");
-
     const { term, tipoCliente } = filters;
 
     const baseWhere: any = {
-      createdByUser: authUser.id,
+      tenantId,
       ...(tipoCliente && { tipoCliente }),
     };
 
@@ -45,10 +41,10 @@ export const ClienteService = {
     return { list, more: page * rpp < total, page, rpp };
   },
 
-  async get(id: string): Promise<Cliente> {
+  async get(id: string, tenantId: string): Promise<Cliente> {
     if (id == null) throw new NotFoundException("Erro ao buscar cliente");
 
-    const cliente = await ClienteRepository.findOneBy({ id });
+    const cliente = await ClienteRepository.findOneBy({ id, tenantId });
     if (!cliente) throw new NotFoundException("Cliente não encontrado");
     return cliente;
   },
@@ -59,6 +55,7 @@ export const ClienteService = {
     const newPasta = PastaRepository.create({
       id: data.id,
       nome: newCliente.nome,
+      ...(data.tenantId ? { tenantId: data.tenantId } : {}),
       dataUltimaModificacao: new Date()
     })
 
@@ -66,8 +63,8 @@ export const ClienteService = {
     return ClienteRepository.save(newCliente);
   },
 
-  async update(id: string, data: Partial<Cliente>): Promise<Cliente> {
-    const cliente = await ClienteRepository.findOneBy({ id });
+  async update(id: string, tenantId: string, data: Partial<Cliente>): Promise<Cliente> {
+    const cliente = await ClienteRepository.findOneBy({ id, tenantId });
     if (!cliente) throw new NotFoundException("Cliente não encontrado");
 
     ClienteRepository.merge(cliente, data);
@@ -76,8 +73,8 @@ export const ClienteService = {
     return ClienteRepository.save(cliente);
   },
 
-  async remove(id: string): Promise<void> {
-    const cliente = await ClienteRepository.findOneBy({ id });
+  async remove(id: string, tenantId: string): Promise<void> {
+    const cliente = await ClienteRepository.findOneBy({ id, tenantId });
     if (!cliente) throw new NotFoundException("Cliente não encontrado");
 
     await ClienteRepository.remove(cliente);

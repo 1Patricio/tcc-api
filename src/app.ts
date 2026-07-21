@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import authRoutes from "./routes/AuthRoute";
 import backofficeRoutes from "./routes/BackofficeRoute";
+import usuariosRoutes from "./routes/UsuariosRoute";
 import clientesRoutes from "./routes/ClientesRouter";
 import processoRoutes from "./routes/ProcessosRouter";
 import pastaRoutes from "./routes/PastasRouter";
@@ -35,6 +36,7 @@ app.get("/health", (_req, res) => {
 
 app.use(authRoutes);
 app.use(backofficeRoutes);
+app.use(usuariosRoutes);
 app.use(clientesRoutes);
 app.use(processoRoutes)
 app.use(pastaRoutes)

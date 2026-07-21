@@ -5,6 +5,7 @@ import { InstanciaProcessoEnum } from "./InstanciaProcessoEnum";
 import { EsferaProcessoEnum } from "./EsferaProcessoEnum";
 import { Cliente } from "../../clientes/models/Cliente";
 import { Jurisprudencia } from "../../jurisprudencias/models/Jurisprudencia";
+import { Empresa } from "../../empresas/models/Empresa";
 
 @Entity('processos')
 export class Processo{
@@ -71,6 +72,13 @@ export class Processo{
 
   @Column({ type: "text", nullable: true })
   createdByUser!: string;
+
+  @Column({ type: "uuid", nullable: true })
+  tenantId?: string;
+
+  @ManyToOne(() => Empresa)
+  @JoinColumn({ name: "tenantId" })
+  empresa?: Empresa;
 
   @CreateDateColumn()
   createdAt!: Date;

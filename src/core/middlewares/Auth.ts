@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
 export interface AuthTokenPayload extends JwtPayload {
   id: string;
   email: string;
+  tenantId?: string;
 }
 
 export default function authenticate(req: Request, res: Response, next: NextFunction) {

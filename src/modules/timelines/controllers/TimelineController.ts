@@ -1,12 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { AuthService } from "../../users/services/AuthService";
 import { TimelineService } from "../services/TimelineService";
 
 export const TimelineController = {
   async resumo(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await AuthService.userInfo(req.headers.authorization!.replace("Bearer ", ""));
-      res.json(await TimelineService.resumo(user.id));
+      res.json(await TimelineService.resumo(req.user!.tenantId!));
     } catch (err) {
       next(err);
     }
@@ -15,7 +13,7 @@ export const TimelineController = {
   async listByProcesso(req: Request, res: Response, next: NextFunction) {
     try {
       const processoId = String(req.params["processoId"]);
-      res.json(await TimelineService.listByProcesso(processoId));
+      res.json(await TimelineService.listByProcesso(processoId, req.user!.tenantId!));
     } catch (err) {
       next(err);
     }
@@ -24,7 +22,7 @@ export const TimelineController = {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const processoId = String(req.params["processoId"]);
-      const evento = await TimelineService.create(processoId, req.body);
+      const evento = await TimelineService.create(processoId, req.user!.tenantId!, req.body);
       res.status(201).json(evento);
     } catch (err) {
       next(err);
@@ -34,7 +32,7 @@ export const TimelineController = {
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const id = String(req.params["id"]);
-      res.json(await TimelineService.update(id, req.body));
+      res.json(await TimelineService.update(id, req.user!.tenantId!, req.body));
     } catch (err) {
       next(err);
     }
@@ -43,7 +41,7 @@ export const TimelineController = {
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
       const id = String(req.params["id"]);
-      await TimelineService.remove(id);
+      await TimelineService.remove(id, req.user!.tenantId!);
       res.status(204).send();
     } catch (err) {
       next(err);

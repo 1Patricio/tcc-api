@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn } from "typeorm";
 import { Pasta } from "../../pasta/models/Pasta";
+import { Empresa } from "../../empresas/models/Empresa";
 
 @Entity('arquivos')
 export class Arquivo{
@@ -20,6 +21,13 @@ export class Arquivo{
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @Column({ type: "uuid", nullable: true })
+  tenantId?: string;
+
+  @ManyToOne(() => Empresa)
+  @JoinColumn({ name: "tenantId" })
+  empresa?: Empresa;
 
   @ManyToOne(() => Pasta, (pasta) => pasta.id)
   @JoinColumn({ name: "pastaId" })

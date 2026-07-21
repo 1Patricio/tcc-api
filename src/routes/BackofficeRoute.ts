@@ -16,6 +16,7 @@ router.post(context + "/login", BackofficeAuthController.login);
 router.get(context + "/dashboard/stats", authenticateBackoffice, BackofficeDashboardController.stats);
 
 router.get(context + "/usuarios", authenticateBackoffice, BackofficeUsersController.list);
+router.post(context + "/usuarios", authenticateBackoffice, BackofficeUsersController.create);
 router.patch(context + "/usuarios/:id", authenticateBackoffice, BackofficeUsersController.update);
 router.patch(context + "/usuarios/:id/reset-senha", authenticateBackoffice, BackofficeUsersController.resetSenha);
 

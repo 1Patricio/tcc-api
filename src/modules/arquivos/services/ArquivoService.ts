@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-import { AuthRepository } from '../../users/repositories/AuthRepository';
 import { PastaRepository } from '../../pasta/repositories/PastaRepository';
 import { Arquivo } from '../models/Arquivo';
 import { ArquivoRepository } from '../repositories/ArquivoRepository';
@@ -7,31 +6,21 @@ import { uploadFile } from '../../../controllers/s3Controller';
 
 export const ArquivoService = {
 
-  async list(userId: string, pastaId: string): Promise<Arquivo[]> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
-
-    const pasta = await PastaRepository.findOneBy({ id: pastaId });
+  async list(tenantId: string, pastaId: string): Promise<Arquivo[]> {
+    const pasta = await PastaRepository.findOneBy({ id: pastaId, tenantId });
     if (!pasta) {
       throw { status: 404, message: "Pasta não encontrada" };
     }
 
-    return ArquivoRepository.findBy({ pastaId: pastaId });
+    return ArquivoRepository.findBy({ pastaId, tenantId });
   },
 
-  async get(userId: string, arquivoId: string): Promise<Arquivo> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
-
+  async get(tenantId: string, arquivoId: string): Promise<Arquivo> {
     if (arquivoId == null) {
       throw { status: 400, message: "ID do arquivo é obrigatório" };
     }
 
-    const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId });
+    const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId, tenantId });
     if (!arquivo) {
       throw { status: 404, message: "Arquivo não encontrado" };
     }
@@ -39,13 +28,10 @@ export const ArquivoService = {
     return arquivo;
   },
 
-  async create(userId: string, pastaId: string, file?: Express.Multer.File): Promise<Arquivo> {
+  async create(tenantId: string, pastaId: string, file?: Express.Multer.File): Promise<Arquivo> {
     if (!file) throw { status: 400, message: "Nenhum arquivo enviado." };
 
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) throw { status: 404, message: "Usuário não encontrado" };
-
-    const pasta = await PastaRepository.findOneBy({ id: pastaId });
+    const pasta = await PastaRepository.findOneBy({ id: pastaId, tenantId });
     if (!pasta) throw { status: 404, message: "Pasta não encontrada" };
 
     const allowedMimeTypes = [
@@ -108,23 +94,19 @@ export const ArquivoService = {
     const newArquivo = ArquivoRepository.create({
       id: uuidv4(),
       pastaId,
+      tenantId,
       nome: Buffer.from(file.originalname, 'latin1').toString('utf8'),
       nomeFisico: fileNameKey,
       url: uploadResult.data?.fileUrl!
     });
-    
+
     await PastaRepository.update(pastaId, { dataUltimaModificacao: new Date() });
 
     return ArquivoRepository.save(newArquivo);
   },
 
-  async update(userId: string, arquivoId: string, data: Partial<Arquivo>): Promise<Arquivo> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
-
-    const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId });
+  async update(tenantId: string, arquivoId: string, data: Partial<Arquivo>): Promise<Arquivo> {
+    const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId, tenantId });
     if (!arquivo) {
       throw { status: 404, message: "Arquivo não encontrado" };
     }
@@ -132,21 +114,16 @@ export const ArquivoService = {
     ArquivoRepository.merge(arquivo, data);
 
     if (arquivo.pastaId) {
-      await PastaRepository.update(arquivo.pastaId, { 
-        dataUltimaModificacao: new Date() 
+      await PastaRepository.update(arquivo.pastaId, {
+        dataUltimaModificacao: new Date()
       });
     }
 
     return ArquivoRepository.save(arquivo);
   },
 
-  async remove(userId: string, arquivoId: string): Promise<void> {
-    const authUser = await AuthRepository.findOneBy({ id: userId });
-    if (!authUser) {
-      throw { status: 404, message: "Usuário não encontrado" };
-    }
-
-    const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId });
+  async remove(tenantId: string, arquivoId: string): Promise<void> {
+    const arquivo = await ArquivoRepository.findOneBy({ id: arquivoId, tenantId });
     if (!arquivo) {
       throw { status: 404, message: "Arquivo não encontrado" };
     }
@@ -156,8 +133,8 @@ export const ArquivoService = {
     await ArquivoRepository.remove(arquivo);
 
     if (pastaId) {
-      await PastaRepository.update(pastaId, { 
-        dataUltimaModificacao: new Date() 
+      await PastaRepository.update(pastaId, {
+        dataUltimaModificacao: new Date()
       });
     }
   },
